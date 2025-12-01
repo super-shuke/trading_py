@@ -22,7 +22,7 @@ def get_status():
     return {"cpu_usage": cpu_usage, "cpu_info": cpu_info, "memory": memory}
 
 
-@app.get("/check_price")
-def check_price():
-    result = check_and_notify()
+@app.post("/check_quick_price")
+def check_quick_price(list: list[str], interval: int):
+    result = check_and_notify(list, interval=interval)
     return result
