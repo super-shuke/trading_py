@@ -1,12 +1,11 @@
 import requests
 
-TG_BOT_TOKEN = "8522584076:AAFNel1mLnA6G4LDMPCzuxFpcP-QMfQ2cRs"
-TG_CHAT_ID =["7946620555","6933752785"]
+from config.index import TG_TOKEN, TG_CHAT_ID, TG_CHANNEL_ID
 
 
-# --- 发送 Telegram 消息 ---
+# --- 发送 Telegram 个人消息 ---
 def send_telegram_message(message):
-    url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage"
+    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
     for chat_id in TG_CHAT_ID:
         payload = {
             "chat_id": chat_id,
@@ -18,4 +17,19 @@ def send_telegram_message(message):
             print(f"发送 Telegram 消息失败: {e}")
             return False
     return True
-    
+
+
+# --- 发送 Telegram 频道消息 ---
+def send_telegram_message(message):
+    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TG_CHANNEL_ID,
+        "text": message,
+    }
+    try:
+        requests.post(url, json=payload)
+    except Exception as e:
+        print(f"发送 Telegram 消息失败: {e}")
+        return False
+
+    return True
