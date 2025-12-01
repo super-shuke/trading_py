@@ -20,9 +20,9 @@ def get_users_list(limit: int | None):
 def get_search_user(userName: str | None, email: str | None):
     conditions = []
     if userName:
-        conditions.append(User.userName.__contains__(userName))
+        conditions.append(User.userName.contains(userName))
     if email:
-        conditions.append(User.email.__contains__(email))
+        conditions.append(User.email.contains(email))
     if conditions:
         statement = statement.where(or_(*conditions))
     else:
