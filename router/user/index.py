@@ -1,38 +1,40 @@
+from typing import List
 from fastapi import APIRouter, HTTPException
 from sqlmodel import or_, select
 from passlib.context import CryptContext
 from sql.client import db
-from sql.schema.user import User
+from sql.schema.user import User, UserBase, UserCreate, UserPublic
 
 
 router = APIRouter(prefix="/api/v1/users", tags=["用户管理"])
-
-statement = select(User)
 
 
 @router.get("/")
 def get_users_list(limit: int | None):
     results = db.get_list(User, limit=limit)
-    return {"msg": "所有用户列表", "data": results, "code": 200}
+    print(results, "---")
+    safe_users = [UserPublic.model_validate(u) for u in results]
+
+    return {"msg": "所有用户列表", "data": safe_users, "code": 200}
 
 
-@router.get("/search")
-def get_search_user(userName: str | None, email: str | None):
+@router.get("/search", response_model=List[UserPublic])
+def get_search_user(userName: str | None, email: str | None = None):
     conditions = []
     if userName:
         conditions.append(User.userName.contains(userName))
     if email:
         conditions.append(User.email.contains(email))
     if conditions:
-        statement = statement.where(or_(*conditions))
+        statement = select(User).where(or_(*conditions))
     else:
-        return False
+        return []
     results = db.exec(statement)
     return results
 
 
-@router.post("/register")
-def register_user(userParams: User):
+@router.post("/register", response_model=UserPublic)
+def register_user(userParams: UserCreate):
     # 这里写注册逻辑...
     has_user = select(User).where(User.userName == userParams.userName)
     results = db.exec(has_user)
@@ -45,6 +47,6 @@ def register_user(userParams: User):
             hashed_password = pwd_context.hash(userParams.password)
         except ValueError as e:
             raise HTTPException(status_code=400, detail="密码格式错误或过长")
-        userParams.password = hashed_password
-        db.add(userParams)
+        db_user = User.model_validate(userParams, update={"password": hashed_password})
+        db.add(db_user)
     return {"msg": "注册成功", "username": userParams.userName}
