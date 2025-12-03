@@ -1,3 +1,5 @@
+import bcrypt
+from pydantic import BaseModel
 from sqlmodel import SQLModel, Field
 from typing import Optional
 
@@ -22,10 +24,37 @@ class UserCreate(UserBase):
 
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    password: str = Field(
+
+    hashed_password: str = Field(
         max_length=255, nullable=False, description="加密后的密码Hash"
     )
+
+    def verify_password(self, plain_password: str) -> bool:
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8"), self.hashed_password.encode("utf-8")
+        )
+
+    @property
+    def password(self):
+        return AttributeError("fucking! go out!!")
+
+    @password.setter
+    def password(self, plain_password: str):
+        # 生成盐并且加密
+        hash_bytes = bcrypt.hashpw(plain_password.encode("utf-8"), bcrypt.gensalt())
+        # 将 bytes 转为 str 存入数据库字段
+        self.hashed_password = hash_bytes.decode("utf-8")
 
 
 class UserPublic(UserBase):
     id: int
+
+
+class Login(BaseModel):
+    userName: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    userName: str

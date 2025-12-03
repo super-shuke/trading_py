@@ -1,7 +1,7 @@
 import glob
 import importlib
 import os
-from typing import TypeVar
+from typing import Any, Sequence, TypeVar
 from sqlmodel import Session
 from sqlalchemy import create_engine
 from sqlmodel import SQLModel, select
@@ -118,7 +118,12 @@ class SQLClient:
             session.commit()
             return True
 
-    def exec(self, statement):
+    def execFirst(self, statement):
+        with Session(self.engine) as session:
+            results = session.exec(statement).first()
+            return results
+
+    def execAll(self, statement: Any) -> Sequence[Any]:
         with Session(self.engine) as session:
             results = session.exec(statement).all()
             return results
