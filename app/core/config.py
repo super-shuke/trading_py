@@ -1,3 +1,4 @@
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
@@ -8,8 +9,7 @@ class Settings(BaseSettings):
     TG_CHANNEL_ID: str
     TG_CHAT_ID: list[str]
 
-    class Config:
-        env_file = "setting.env"
+    model_config = ConfigDict(env_file="setting.env")
 
 
 settings = Settings()

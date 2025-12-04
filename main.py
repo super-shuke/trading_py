@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from app.services.crawler import AdvancedCrawler
 from router.index import register_routers
 from sql.client import db
 from trading import check_and_notify
@@ -22,6 +23,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+crawler_service = AdvancedCrawler()
+
 
 @app.get("/status")
 def get_status():
@@ -32,3 +35,13 @@ def get_status():
 
     cpu_info = f"CPU使用率: {cpu_usage}%"
     return {"cpu_usage": cpu_usage, "cpu_info": cpu_info, "memory": memory}
+
+
+@app.get("/goSports")
+async def goto_sports(symbol: str):
+    targetUrl = f"https://www.ve657.com/sport-h5-dev/{symbol}"
+    news_titles = await crawler_service.fetch_dynamic_content(targetUrl)
+    if not news_titles:
+        return {"msg": "反爬太厉害了，没抓到数据，试试换个源"}
+    else:
+        return {"titles": news_titles}
