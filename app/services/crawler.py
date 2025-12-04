@@ -43,10 +43,27 @@ class AdvancedCrawler:
                 print(f"Navigating to（爬取中） {url}")
                 # 访问页面
                 await page.goto(url, wait_until="networkidle", timeout=60000)
+                await page.locator('body').first.is_visible()
+                # 模拟人类行为：一步步操作
+                # 假设我们要点击 "今日" 这个按钮
+                # 1. 定位元素
+                target_div = page.get_by_text("今日", exact=True).first
+                await target_div.is_visible()
+                await asyncio.sleep(1)
+                # 2. 使用封装的拟人化点击方法
+                await self.human_like_click(page, target_div)
+                await asyncio.sleep(1)
+                next_tournament =await page.get_by_text("英超", exact=True)
 
-                target_div = page.get_by_text("今日", exact=True)
-
-                await target_div.evaluate("element=> element.click()")
+                # 如果有下一步，继续操作，例如点击某个分类
+                await self.human_like_click(page, next_tournament)
+                await asyncio.sleep(1)
+                
+                
+                # 如果需要输入搜索框
+                # search_input = page.locator("input[name='q']")
+                # await search_input.click()
+                # await page.keyboard.type("Python 爬虫", delay=100) # 模拟打字延迟
 
                 # 模拟人类滚动页面以加载动态内容
                 await self.simulate_human_scroll(page)
@@ -68,6 +85,41 @@ class AdvancedCrawler:
             finally:
                 # await browser.close()
                 print("浏览器已关闭")
+
+    async def human_like_click(self, page: Page, selector: str):
+        """
+        模拟人类点击行为：
+        1. 随机等待
+        2. 移动鼠标到元素位置
+        3. 点击
+        """
+        try:
+            # 1. 随机等待一段时间 (0.5 - 1.5秒)
+            await asyncio.sleep(random.uniform(1, 3))
+            
+            # 2. 获取元素
+            element = page.locator(selector).first
+            
+            # 确保元素可见
+            if await element.is_visible():
+                # 3. 移动鼠标到元素上方 (可选，增加真实感)
+                # 获取元素位置
+                box = await element.bounding_box()
+                if box:
+                    await page.mouse.move(
+                        box["x"] + box["width"] / 2, 
+                        box["y"] + box["height"] / 2,
+                        steps=10 # 模拟鼠标移动轨迹
+                    )
+                
+                # 4. 点击
+                await element.click()
+                print(f"Clicked element: {selector}")
+            else:
+                print(f"Element not visible: {selector}")
+                
+        except Exception as e:
+            print(f"Error clicking {selector}: {e}")
 
     async def simulate_human_scroll(self, page: Page):
         # 获取页面高度
