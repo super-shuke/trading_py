@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta, timezone
 import jwt
 
-from config.index import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
+from app.core.config import Settings
+from config.index import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM
+
+settings = Settings()
 
 
 # 生成token
@@ -17,7 +20,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
         )
     to_encode.update({"exp": expire})
     # 加密
-    encode_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encode_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
     return encode_jwt
 
 
@@ -25,7 +28,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 def decode_access_token(token: str) -> dict | None:
     try:
         # 解密
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
         return payload.get("sub")
     except jwt.ExpiredSignatureError:
         print("Token 已过期")

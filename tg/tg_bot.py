@@ -1,12 +1,14 @@
 import requests
 
-from config.index import TG_TOKEN, TG_CHAT_ID, TG_CHANNEL_ID
+from app.core.config import Settings
+
+settings = Settings()
 
 
 # --- 发送 Telegram 个人消息 ---
 def send_telegram_message(message):
-    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-    for chat_id in TG_CHAT_ID:
+    url = f"https://api.telegram.org/bot{settings.TG_TOKEN}/sendMessage"
+    for chat_id in settings.TG_CHAT_ID:
         payload = {
             "chat_id": chat_id,
             "text": message,
@@ -21,9 +23,9 @@ def send_telegram_message(message):
 
 # --- 发送 Telegram 频道消息 ---
 def send_telegram_message(message):
-    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
+    url = f"https://api.telegram.org/bot{settings.TG_TOKEN}/sendMessage"
     payload = {
-        "chat_id": TG_CHANNEL_ID,
+        "chat_id": settings.TG_CHANNEL_ID,
         "text": message,
     }
     try:
