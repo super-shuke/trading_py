@@ -38,8 +38,8 @@ def get_status():
 
 
 @app.get("/goSports")
-async def goto_sports(symbol: str):
-    targetUrl = f"https://www.ve657.com/sport-h5-dev/{symbol}"
+async def goto_sports(symbol: str|None = None):
+    targetUrl = f"https://www.jin10.com/"
     news_titles = await crawler_service.fetch_dynamic_content(targetUrl)
     if not news_titles:
         return {"msg": "反爬太厉害了，没抓到数据，试试换个源"}
