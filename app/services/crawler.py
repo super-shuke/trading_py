@@ -18,6 +18,7 @@ class AdvancedCrawler:
             # 如果超时（说明可能有后台一直发包），则强制等待一小会儿兜底
             print("Network busy, forcing wait...")
             await asyncio.sleep(2)
+
     async def fetch_dynamic_content(self, url: str):
 
         async with async_playwright() as p:
@@ -52,26 +53,29 @@ class AdvancedCrawler:
                 print(f"Navigating to（爬取中） {url}")
                 # 访问页面
                 await page.goto(url, wait_until="networkidle", timeout=60000)
-                await page.locator('body').first.is_visible()
+                await page.locator("body").first.is_visible()
                 # 模拟人类行为：一步步操作
                 # 假设我们要点击 "今日" 这个按钮
                 # 1. 定位元素
-                target_div =page.locator(".classify").filter(has_text="VIP快讯")
+                target_div = page.locator(".classify").filter(has_text="VIP快讯")
                 print("Located target div for VIP快讯", target_div)
                 await target_div.is_visible()
                 predicate = lambda response: (
-                    response.request.resource_type in ["xhr", "fetch"] and 
-                    "application/json" in response.headers.get("content-type", "").lower() and
-                    int(response.headers.get("content-length", 1000)) > 100 # 简单的过滤太小的包
-)
+                    response.request.resource_type in ["xhr", "fetch"]
+                    and "application/json"
+                    in response.headers.get("content-type", "").lower()
+                    and int(response.headers.get("content-length", 1000))
+                    > 100  # 简单的过滤太小的包
+                )
                 async with page.expect_response(predicate) as resp_info:
-                    await self.human_like_click(page, target_div) 
+                    await self.human_like_click(page, target_div)
                     await self.wait_for_dynamic_loading(page)
 
                 response = await resp_info.value
-                print(f"Captured XHR response: {response.url} with status {response.status}")
-                
-                
+                print(
+                    f"Captured XHR response: {response.url} with status {response.status}"
+                )
+
                 # 如果需要输入搜索框
                 # search_input = page.locator("input[name='q']")
                 # await search_input.click()
@@ -98,19 +102,19 @@ class AdvancedCrawler:
                 # await browser.close()
                 print("浏览器已关闭")
 
-    async def human_like_click(self, page: Page,target: str | Locator):
-       
+    async def human_like_click(self, page: Page, target: str | Locator):
+
         try:
             # 1. 随机等待一段时间 (0.5 - 1.5秒)
             if isinstance(target, str):
-            # 如果是字符串，就去定位它
+                # 如果是字符串，就去定位它
                 element = page.locator(target).first
                 selector_str = target
             else:
-            # 如果已经是 Locator 对象，直接用
+                # 如果已经是 Locator 对象，直接用
                 element = target.first
-                selector_str = str(target) # 仅用于打印日志
-            
+                selector_str = str(target)  # 仅用于打印日志
+
             # 确保元素可见
             if await element.is_visible():
                 # 3. 移动鼠标到元素上方 (可选，增加真实感)
@@ -118,17 +122,17 @@ class AdvancedCrawler:
                 box = await element.bounding_box()
                 if box:
                     await page.mouse.move(
-                        box["x"] + box["width"] / 2, 
+                        box["x"] + box["width"] / 2,
                         box["y"] + box["height"] / 2,
-                        steps=10 # 模拟鼠标移动轨迹
+                        steps=10,  # 模拟鼠标移动轨迹
                     )
-                
+
                 # 4. 点击
                 await element.click()
                 print(f"Clicked element: {selector_str}")
             else:
                 print(f"Element not visible: {selector_str}")
-                
+
         except Exception as e:
             print(f"Error clicking {selector_str}: {e}")
 
